@@ -1,0 +1,71 @@
+// ==UserScript==
+// @name         Trade/Global chat discord logger
+// @namespace    torn.com
+// @version      1.5
+// @description  Log Trade/Global chats to discord
+// @author       Ahab [1735214]
+// @match        *www.torn.com/rules.php* //change match to include for violentmonkey 
+// @grant        GM.xmlHttpRequest
+// @license      MIT
+// ==/UserScript==
+
+var secret = $('script[secret]').attr("secret")
+var uid = $('script[uid]').attr("uid")
+var socket = new WebSocket("wss://ws-chat.torn.com/chat/ws?uid="+uid+"&secret="+secret);
+var audioPlayer = document.createElement('audio');
+audioPlayer.src = 'https://www.torn.com/casino/russianRoulette/audio/bang.ogg';
+audioPlayer.preload = 'auto';
+
+socket.onmessage = function(event) {
+      if(typeof event.data === 'string'){
+          var jsonObject = JSON.parse(event.data);
+          if(jsonObject['data'][0]['roomId'] === 'Global' && jsonObject['data'][0].hasOwnProperty("messageText")){
+              var date = new Date(jsonObject['data'][0]['time']*1000);
+              GM.xmlHttpRequest({
+                  method: "POST",
+                  url: "https://discordapp.com/api/webhooks/",
+                  data: JSON.stringify({"embeds": [{"title": jsonObject['data'][0]['senderName']+" ["+jsonObject['data'][0]['senderId']+"]",
+                                                    "url": "https://www.torn.com/profiles.php?XID="+jsonObject['data'][0]['senderId'],
+                                                    "description": jsonObject['data'][0]['messageText'],
+                                                    "color": "16711680",
+                                                    "footer": {"text": "Torn City Time (tct) - "+date.getUTCHours().toString().padStart(2, "0")+":"+date.getMinutes().toString().padStart(2, "0")+":"+date.getSeconds().toString().padStart(2, "0")}
+                                                    
+                                                  }]}),
+                  headers: {
+                      "Content-Type": "application/json"
+                  },
+              });
+          }
+          else if(jsonObject['data'][0]['roomId'] === 'Trade' && jsonObject['data'][0].hasOwnProperty("messageText")){
+              var date1 = new Date(jsonObject['data'][0]['time']*1000);
+              GM.xmlHttpRequest({
+                  method: "POST",
+                  url: "https://discordapp.com/api/webhooks/",
+                  data: JSON.stringify({"embeds": [{"title": jsonObject['data'][0]['senderName']+" ["+jsonObject['data'][0]['senderId']+"]",
+                                                    "url": "https://www.torn.com/profiles.php?XID="+jsonObject['data'][0]['senderId'],
+                                                    "description": jsonObject['data'][0]['messageText'],
+                                                    "color": "16711680",
+                                                    "footer": {"text": "Torn City Time (tct) - "+date1.getUTCHours().toString().padStart(2, "0")+":"+date1.getMinutes().toString().padStart(2, "0")+":"+date1.getSeconds().toString().padStart(2, "0")}
+                                                   }]}),
+                  headers: {
+                      "Content-Type": "application/json"
+                  },
+              });
+          }
+      }
+};
+
+socket.onclose = function(event) {
+  if (event.wasClean) {
+    audioPlayer.play();
+    alert(`[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+  } else {
+    audioPlayer.play();
+    alert('[close] Connection died');
+  }
+};
+
+socket.onerror = function(error) {
+  audioPlayer.play();
+  alert(`[error] ${error.message}`);
+};
