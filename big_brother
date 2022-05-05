@@ -1,15 +1,3 @@
-// ==UserScript==
-// @name         Faction chat discord logger
-// @namespace    torn.com
-// @version      1.0
-// @description  Log Trade/Global chats to discord
-// @author       Ahab [1735214]
-// @match        *www.torn.com/rules.php* //change match to include for violentmonkey 
-// @updateURL     https://openuserjs.org/meta/Ahab/Faction_chat_discord_logger.meta.js
-// @grant        GM.xmlHttpRequest
-// @license      MIT
-// ==/UserScript==
-
 var secret = $('script[secret]').attr("secret")
 var uid = $('script[uid]').attr("uid")
 var socket = new WebSocket("wss://ws-chat.torn.com/chat/ws?uid="+uid+"&secret="+secret);
